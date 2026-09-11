@@ -1,0 +1,15 @@
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+backend/target/
+backend/.env
+
+.vscode/
+.idea/
+
+.DS_Store
+Thumbs.db
+
+backend/src/main/resources/application.properties
+backend/build-error.txt
