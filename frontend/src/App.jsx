@@ -3,6 +3,7 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Assets from "./components/Assets";
 import { AuthProvider } from "./context/AuthContext";
+import AlertHistory from "./components/AlertHistory";
 
 function App() {
   return (
@@ -21,6 +22,10 @@ function App() {
             path="/assets"
             element={<Assets />}
           />
+          <Route 
+          path="/alert-history" 
+          element={<AlertHistory />}
+           />
 
         </Routes>
       </BrowserRouter>

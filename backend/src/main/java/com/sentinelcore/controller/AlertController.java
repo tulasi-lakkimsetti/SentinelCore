@@ -47,6 +47,11 @@ public class AlertController {
         return alertService.getOpenAlerts();
     }
 
+    @GetMapping("/history")
+    public List<AlertDTO> getAlertHistory() {
+        return alertService.getAlertHistory();
+    }
+
     @PostMapping
     public AlertDTO createAlert(@RequestBody AlertDTO dto) {
 

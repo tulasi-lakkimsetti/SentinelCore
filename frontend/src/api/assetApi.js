@@ -23,3 +23,6 @@ export const searchAssets = (search, status) => {
     }
   });
 };
+export const getAlertHistory = () => {
+  return API.get("/alerts/history");
+};

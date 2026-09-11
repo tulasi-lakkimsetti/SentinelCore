@@ -339,10 +339,15 @@ function Dashboard() {
 
           </button>
 
-          <button className="sidebar-item">
-            <span>◷</span>
-            Alert History
-          </button>
+          <button
+  className="sidebar-item"
+  onClick={() => {
+    window.location.href = "/alert-history";
+  }}
+>
+  <span>...</span>
+  Alert History
+</button>
 
         </div>
 

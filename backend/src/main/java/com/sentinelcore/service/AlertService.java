@@ -18,8 +18,10 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final AssetRepository assetRepository;
 
-    public AlertService(AlertRepository alertRepository,
-                        AssetRepository assetRepository) {
+    public AlertService(
+            AlertRepository alertRepository,
+            AssetRepository assetRepository) {
+
         this.alertRepository = alertRepository;
         this.assetRepository = assetRepository;
     }
@@ -35,11 +37,15 @@ public class AlertService {
         Alert alert = new Alert();
 
         alert.setAsset(asset);
+
         alert.setSeverity(
                 Alert.Severity.valueOf(dto.getSeverity())
         );
+
         alert.setMessage(dto.getMessage());
+
         alert.setStatus(Alert.AlertStatus.OPEN);
+
         alert.setCreatedAt(LocalDateTime.now());
 
         return toDTO(alertRepository.save(alert));
@@ -55,6 +61,18 @@ public class AlertService {
                 .collect(Collectors.toList());
     }
 
+    // Get Alert History
+    public List<AlertDTO> getAlertHistory() {
+
+        return alertRepository
+                .findByStatusOrderByResolvedAtDesc(
+                        Alert.AlertStatus.RESOLVED
+                )
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     // Resolve Alert
     public AlertDTO resolveAlert(Long id) {
 
@@ -64,6 +82,7 @@ public class AlertService {
                                 "Alert not found with id: " + id));
 
         alert.setStatus(Alert.AlertStatus.RESOLVED);
+
         alert.setResolvedAt(LocalDateTime.now());
 
         return toDTO(alertRepository.save(alert));
