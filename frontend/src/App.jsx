@@ -3,8 +3,9 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import Assets from "./components/Assets";
 import { AuthProvider } from "./context/AuthContext";
+import Alerts from "./components/Alerts";
 import AlertHistory from "./components/AlertHistory";
-
+import Profile from "./components/Profile";
 function App() {
   return (
     <AuthProvider>
@@ -22,10 +23,16 @@ function App() {
             path="/assets"
             element={<Assets />}
           />
+          <Route path="/alerts"
+           element={<Alerts />}
+          />
           <Route 
           path="/alert-history" 
           element={<AlertHistory />}
            />
+           <Route path="/profile"
+            element={<Profile />} 
+            />
 
         </Routes>
       </BrowserRouter>

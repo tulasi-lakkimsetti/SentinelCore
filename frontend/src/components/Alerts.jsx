@@ -1,26 +1,28 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { getAlertHistory } from "../api/assetApi";
+import React, { useEffect, useState } from "react";
+import { getOpenAlerts, resolveAlert } from "../api/assetApi";
+import AddAlert from "./AddAlert";
 
-const AlertHistory = () => {
+const Alerts = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [severityFilter, setSeverityFilter] = useState("ALL");
+  const [resolvingId, setResolvingId] = useState(null);
+  const [showAddAlert, setShowAddAlert] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 10;
 
-  const loadAlertHistory = async () => {
+  const loadAlerts = async () => {
     try {
       setLoading(true);
 
-      const response = await getAlertHistory();
+      const response = await getOpenAlerts();
+
       setAlerts(response.data || []);
       setCurrentPage(1);
     } catch (error) {
       console.error(
-        "Error loading alert history:",
+        "Error loading alerts:",
         error.response?.status,
         error.response?.data
       );
@@ -29,57 +31,31 @@ const AlertHistory = () => {
     }
   };
 
-  useEffect(() => {
-    loadAlertHistory();
-  }, []);
+  const handleResolve = async (id) => {
+    try {
+      setResolvingId(id);
 
-  const filteredAlerts = useMemo(() => {
-    return alerts.filter((alert) => {
-      const matchesSearch =
-        !search ||
-        String(alert.id)
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        String(alert.assetId)
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        String(alert.message || "")
-          .toLowerCase()
-          .includes(search.toLowerCase());
+      await resolveAlert(id);
 
-      const matchesSeverity =
-        severityFilter === "ALL" ||
-        alert.severity === severityFilter;
+      alert("Alert resolved successfully.");
 
-      return matchesSearch && matchesSeverity;
-    });
-  }, [alerts, search, severityFilter]);
+      await loadAlerts();
+    } catch (error) {
+      console.error(
+        "Error resolving alert:",
+        error.response?.status,
+        error.response?.data
+      );
 
-  // Reset to page 1 when search or filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, severityFilter]);
-
-  // Pagination calculations
-  const totalPages = Math.ceil(
-    filteredAlerts.length / alertsPerPage
-  );
-
-  const startIndex =
-    (currentPage - 1) * alertsPerPage;
-
-  const endIndex = startIndex + alertsPerPage;
-
-  const currentAlerts = filteredAlerts.slice(
-    startIndex,
-    endIndex
-  );
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
+      alert("Failed to resolve alert.");
+    } finally {
+      setResolvingId(null);
     }
   };
+
+  useEffect(() => {
+    loadAlerts();
+  }, []);
 
   const formatDate = (date) => {
     if (!date) return "-";
@@ -111,12 +87,23 @@ const AlertHistory = () => {
     }
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(alerts.length / alertsPerPage);
+
+  const startIndex = (currentPage - 1) * alertsPerPage;
+  const endIndex = startIndex + alertsPerPage;
+
+  const currentAlerts = alerts.slice(startIndex, endIndex);
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
   return (
     <div className="dashboard">
-
-      {/* Sidebar */}
       <aside className="sidebar">
-
         <div className="sidebar-logo-area">
           <div className="sidebar-shield">S</div>
 
@@ -132,7 +119,6 @@ const AlertHistory = () => {
         </div>
 
         <div className="sidebar-menu">
-
           <button
             className="sidebar-item"
             onClick={() => {
@@ -153,17 +139,17 @@ const AlertHistory = () => {
             Assets
           </button>
 
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/dashboard";
-            }}
-          >
+          <button className="sidebar-item active">
             <span>♧</span>
             Alerts
           </button>
 
-          <button className="sidebar-item active">
+          <button
+            className="sidebar-item"
+            onClick={() => {
+              window.location.href = "/alert-history";
+            }}
+          >
             <span>◷</span>
             Alert History
           </button>
@@ -195,12 +181,8 @@ const AlertHistory = () => {
         </div>
       </aside>
 
-      {/* Main */}
       <div className="dashboard-main">
-
-        {/* Header */}
         <header className="top-header">
-
           <div className="search-box">
             <span>⌕</span>
 
@@ -212,156 +194,94 @@ const AlertHistory = () => {
           </div>
 
           <div className="header-right">
-
             <button className="notification">
               ♧
             </button>
 
             <div className="header-user">
-
-              <div className="avatar">
-                S
-              </div>
+              <div className="avatar">S</div>
 
               <div>
                 <strong>Student</strong>
                 <small>Administrator</small>
               </div>
 
-              <span className="user-arrow">
-                ⌄
-              </span>
-
+              <span className="user-arrow">⌄</span>
             </div>
           </div>
         </header>
 
-        {/* Page Header */}
         <div className="page-heading">
-
           <div>
-            <h1>Alert History</h1>
-
-            <p>
-              Review and monitor previously resolved alerts
-            </p>
+            <h1>Alerts</h1>
+            <p>Monitor active system alerts</p>
           </div>
 
-          <button
-            className="view-all"
-            onClick={loadAlertHistory}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "↻ Refresh"}
-          </button>
+          <div>
+            <button
+              className="view-all"
+              onClick={() => setShowAddAlert(true)}
+            >
+              + Add Alert
+            </button>
 
+            <button
+              className="view-all"
+              onClick={loadAlerts}
+              disabled={loading}
+              style={{ marginLeft: "10px" }}
+            >
+              {loading ? "Loading..." : "↻ Refresh"}
+            </button>
+          </div>
         </div>
 
-        {/* History Card */}
+        {showAddAlert && (
+          <AddAlert
+            onClose={() => setShowAddAlert(false)}
+            onAlertCreated={loadAlerts}
+          />
+        )}
+
         <div className="alert-history-wrapper">
-
           <div className="dashboard-card alert-history-card">
-
-            {/* Card Header */}
             <div className="alert-history-header">
-
               <div>
-                <h2>Resolved Alerts</h2>
+                <h2>Active Alerts</h2>
 
                 <p>
-                  {filteredAlerts.length} alert
-                  {filteredAlerts.length !== 1 ? "s" : ""}
-                  {" "}shown
+                  {alerts.length} active alert
+                  {alerts.length !== 1 ? "s" : ""}
                 </p>
               </div>
 
               <div className="alert-history-count">
-                {alerts.length} Total
+                {alerts.length} Active
               </div>
-
             </div>
 
-            {/* Filters */}
-            <div className="alert-history-toolbar">
-
-              <div className="alert-history-search">
-
-                <span>⌕</span>
-
-                <input
-                  type="text"
-                  placeholder="Search alert ID, asset ID or message..."
-                  value={search}
-                  onChange={(e) =>
-                    setSearch(e.target.value)
-                  }
-                />
-
-              </div>
-
-              <select
-                value={severityFilter}
-                onChange={(e) =>
-                  setSeverityFilter(e.target.value)
-                }
-                className="alert-history-filter"
-              >
-                <option value="ALL">
-                  All Severities
-                </option>
-
-                <option value="CRITICAL">
-                  Critical
-                </option>
-
-                <option value="HIGH">
-                  High
-                </option>
-
-                <option value="WARNING">
-                  Warning
-                </option>
-
-                <option value="MEDIUM">
-                  Medium
-                </option>
-
-                <option value="LOW">
-                  Low
-                </option>
-              </select>
-
-            </div>
-
-            {/* Table */}
             {loading ? (
               <div className="alert-history-empty">
                 <div className="alert-history-loading">
-                  Loading alert history...
+                  Loading alerts...
                 </div>
               </div>
-            ) : filteredAlerts.length === 0 ? (
+            ) : alerts.length === 0 ? (
               <div className="alert-history-empty">
-
                 <div className="alert-history-empty-icon">
                   ✓
                 </div>
 
-                <h3>
-                  No resolved alerts found
-                </h3>
+                <h3>No active alerts</h3>
 
                 <p>
-                  Try changing your search or filter.
+                  All monitored systems are currently clear.
                 </p>
-
               </div>
             ) : (
               <>
                 <div className="table-container alert-history-table-container">
-
                   <table className="alert-history-table">
-
                     <thead>
                       <tr>
                         <th>Alert</th>
@@ -369,17 +289,14 @@ const AlertHistory = () => {
                         <th>Severity</th>
                         <th>Message</th>
                         <th>Created</th>
-                        <th>Resolved</th>
                         <th>Status</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
 
                     <tbody>
-
                       {currentAlerts.map((alert) => (
-
                         <tr key={alert.id}>
-
                           <td>
                             <div className="alert-history-id">
                               #{alert.id}
@@ -415,42 +332,44 @@ const AlertHistory = () => {
                           </td>
 
                           <td>
-                            <span className="alert-history-date">
-                              {formatDate(alert.resolvedAt)}
+                            <span className="alert-history-status open-status">
+                              <span className="alert-history-status-dot" />
+                              Open
                             </span>
                           </td>
 
                           <td>
-                            <span className="alert-history-status">
-                              <span className="alert-history-status-dot" />
-                              Resolved
-                            </span>
+                            <button
+                              type="button"
+                              className="alert-resolve-button"
+                              onClick={() =>
+                                handleResolve(alert.id)
+                              }
+                              disabled={
+                                resolvingId === alert.id
+                              }
+                            >
+                              {resolvingId === alert.id
+                                ? "Resolving..."
+                                : "Resolve"}
+                            </button>
                           </td>
-
                         </tr>
-
                       ))}
-
                     </tbody>
-
                   </table>
                 </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="alert-pagination">
-
                     <div className="alert-pagination-info">
                       Showing {startIndex + 1}-
-                      {Math.min(
-                        endIndex,
-                        filteredAlerts.length
-                      )}{" "}
-                      of {filteredAlerts.length} alerts
+                      {Math.min(endIndex, alerts.length)} of{" "}
+                      {alerts.length} alerts
                     </div>
 
                     <div className="alert-pagination-controls">
-
                       <button
                         className="pagination-button"
                         onClick={() =>
@@ -468,13 +387,9 @@ const AlertHistory = () => {
                         <button
                           key={page}
                           className={`pagination-number ${
-                            currentPage === page
-                              ? "active"
-                              : ""
+                            currentPage === page ? "active" : ""
                           }`}
-                          onClick={() =>
-                            goToPage(page)
-                          }
+                          onClick={() => goToPage(page)}
                         >
                           {page}
                         </button>
@@ -491,24 +406,20 @@ const AlertHistory = () => {
                       >
                         Next →
                       </button>
-
                     </div>
                   </div>
                 )}
               </>
             )}
-
           </div>
-
         </div>
 
         <div className="dashboard-footer">
-          SentinelCore SecureOps • Alert History
+          SentinelCore SecureOps • Alerts
         </div>
-
       </div>
     </div>
   );
 };
 
-export default AlertHistory;
+export default Alerts;

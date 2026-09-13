@@ -13,8 +13,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sentinelcore.dto.AlertDTO;
+import com.sentinelcore.entity.Asset;
+import com.sentinelcore.repository.AssetRepository;
 import com.sentinelcore.service.AlertService;
 import com.sentinelcore.service.NotificationService;
+import com.sentinelcore.service.SmsNotificationService;
 import com.sentinelcore.service.WebhookNotificationService;
 
 @RestController
@@ -25,6 +28,8 @@ public class AlertController {
     private final AlertService alertService;
     private final NotificationService notificationService;
     private final WebhookNotificationService webhookNotificationService;
+    private final SmsNotificationService smsNotificationService;
+    private final AssetRepository assetRepository;
 
     @Value("${spring.mail.username}")
     private String notificationEmail;
@@ -35,11 +40,15 @@ public class AlertController {
     public AlertController(
             AlertService alertService,
             NotificationService notificationService,
-            WebhookNotificationService webhookNotificationService) {
+            WebhookNotificationService webhookNotificationService,
+            SmsNotificationService smsNotificationService,
+            AssetRepository assetRepository) {
 
         this.alertService = alertService;
         this.notificationService = notificationService;
         this.webhookNotificationService = webhookNotificationService;
+        this.smsNotificationService = smsNotificationService;
+        this.assetRepository = assetRepository;
     }
 
     @GetMapping("/open")
@@ -76,6 +85,33 @@ public class AlertController {
                     webhookUrl,
                     savedAlert
             );
+
+            // SMS notification for HIGH alerts
+            // when any asset metric is above 80%
+            if ("HIGH".equalsIgnoreCase(severity)) {
+
+                Asset asset = assetRepository.findById(dto.getAssetId())
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Asset not found with id: "
+                                                + dto.getAssetId()));
+
+                boolean thresholdExceeded =
+                        asset.getCpuUsage() > 80
+                        || asset.getMemoryUsage() > 80
+                        || asset.getDiskUsage() > 80
+                        || asset.getNetworkUsage() > 80;
+
+                if (thresholdExceeded) {
+
+                    smsNotificationService.sendAlertSms(
+                         "SentinelCore HIGH Alert. "
+                          + "Message: " + dto.getMessage()
+                          + ". Asset: " + asset.getAssetName()
+                          + ". One or more metrics are above 80%."
+                          );
+                }
+            }
         }
 
         return savedAlert;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import {
   ResponsiveContainer,
@@ -20,6 +21,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import AddAsset from "./AddAsset";
+import NotificationBell from "./NotificationBell";
 import "../styles/Dashboard.css";
 
 function Dashboard() {
@@ -35,6 +37,7 @@ function Dashboard() {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { isAdmin, logout } = useAuth();
 
@@ -263,6 +266,14 @@ function Dashboard() {
     window.location.href = "/";
   };
 
+  /* =========================
+     PROFILE NAVIGATION
+  ========================= */
+
+  const handleProfileClick = () => {
+  navigate("/profile");
+};
+
   return (
     <div className="dashboard">
 
@@ -313,41 +324,35 @@ function Dashboard() {
             </button>
           )}
 
-          
-
           <button
-  className="sidebar-item"
-  onClick={() => {
-    window.location.href = "/assets";
-  }}
->
-  <span>▤</span>
-  Assets
-</button>
-
-          <button className="sidebar-item">
-
-            <span>♧</span>
-
-            Alerts
-
-            {activeAlerts > 0 && (
-              <b className="sidebar-alert-count">
-                {activeAlerts}
-              </b>
-            )}
-
+            className="sidebar-item"
+            onClick={() => {
+              window.location.href = "/assets";
+            }}
+          >
+            <span>▤</span>
+            Assets
           </button>
 
           <button
-  className="sidebar-item"
-  onClick={() => {
-    window.location.href = "/alert-history";
-  }}
->
-  <span>...</span>
-  Alert History
-</button>
+            className="sidebar-item"
+            onClick={() => {
+              window.location.href = "/alerts";
+            }}
+          >
+            <span>♧</span>
+            Alerts
+          </button>
+
+          <button
+            className="sidebar-item"
+            onClick={() => {
+              window.location.href = "/alert-history";
+            }}
+          >
+            <span>...</span>
+            Alert History
+          </button>
 
         </div>
 
@@ -357,10 +362,15 @@ function Dashboard() {
 
         <div className="sidebar-menu">
 
-          <button className="sidebar-item">
-            <span>◯</span>
-            Profile
-          </button>
+          {/* PROFILE BUTTON */}
+
+          <button
+  className="sidebar-item"
+  onClick={handleProfileClick}
+>
+  <span>◯</span>
+  Profile
+</button>
 
           <button
             className="sidebar-item"
@@ -415,7 +425,7 @@ function Dashboard() {
             ☰
           </button>
 
-          {/* SEARCH BAR ONLY */}
+          {/* SEARCH BAR */}
 
           <div className="search-box">
 
@@ -434,19 +444,16 @@ function Dashboard() {
 
           <div className="header-right">
 
-            <button className="notification">
+            {/* NOTIFICATION */}
 
-              ♧
+            <NotificationBell />
 
-              {activeAlerts > 0 && (
-                <span>
-                  {activeAlerts}
-                </span>
-              )}
+            {/* TOP PROFILE */}
 
-            </button>
-
-            <div className="header-user">
+            <div
+              className="header-user"
+              onClick={handleProfileClick}
+            >
 
               <div className="avatar">
                 {username.charAt(0).toUpperCase()}

@@ -14,3 +14,17 @@ export const refreshAccessToken = (refreshToken) => {
     refreshToken
   });
 };
+// Get current user profile
+export const getCurrentUser = () => {
+  return API.get("/auth/me");
+};
+
+// Update name and email
+export const updateProfile = (profileData) => {
+  return API.put("/auth/profile", profileData);
+};
+
+// Change password
+export const changePassword = (passwordData) => {
+  return API.put("/auth/password", passwordData);
+};

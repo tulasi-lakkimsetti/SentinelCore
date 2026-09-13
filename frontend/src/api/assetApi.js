@@ -11,6 +11,10 @@ export const createAsset = (asset) => {
   return API.post(ASSET_API, asset);
 };
 
+export const getOpenAlerts = () => {
+  return API.get("/alerts/open");
+};
+
 export const getDashboardSummary = () => {
   return API.get(`${DASHBOARD_API}/summary`);
 };
@@ -25,4 +29,10 @@ export const searchAssets = (search, status) => {
 };
 export const getAlertHistory = () => {
   return API.get("/alerts/history");
+};
+export const resolveAlert = (id) => {
+  return API.put(`/alerts/${id}/resolve`);
+};
+export const createAlert = (alert) => {
+  return API.post("/alerts", alert);
 };
