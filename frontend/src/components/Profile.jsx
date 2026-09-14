@@ -4,6 +4,7 @@ import {
   changePassword
 } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
+import DashboardLayout from "./DashboardLayout";
 import "../styles/Profile.css";
 
 const Profile = () => {
@@ -113,8 +114,6 @@ const Profile = () => {
         "email",
         updatedEmail
       );
-
-      /* Update JWT if backend returned a new token */
 
       if (response.data.accessToken) {
         localStorage.setItem(
@@ -252,606 +251,432 @@ const Profile = () => {
   };
 
   return (
-    <div className="dashboard">
+    <DashboardLayout
+      search=""
+      setSearch={() => {}}
+      username={profile.username}
+      isAdmin={isAdmin}
+      onAddAsset={() => {}}
+    >
 
-      {/* =========================
-          SIDEBAR
-      ========================= */}
+      {/* PAGE HEADING */}
 
-      <aside className="sidebar">
+      <section className="page-heading">
 
-        <div className="sidebar-logo-area">
+        <div>
 
-          <div className="sidebar-shield">
-            S
-          </div>
+          <h1>
+            My Profile
+          </h1>
 
-          <div>
+          <p>
+            Manage your SentinelCore account information.
+          </p>
 
-            <div className="sidebar-title">
-              Sentinel<span>Core</span>
+        </div>
+
+      </section>
+
+      {/* MESSAGES */}
+
+      {message && (
+        <div className="profile-success-message">
+          ✓ {message}
+        </div>
+      )}
+
+      {error && (
+        <div className="profile-error-message">
+          ! {error}
+        </div>
+      )}
+
+      {/* PROFILE */}
+
+      <section className="profile-page">
+
+        <div className="dashboard-card profile-card">
+
+          <div className="profile-card-header">
+
+            <div className="profile-avatar-large">
+              {profile.username
+                .charAt(0)
+                .toUpperCase()}
             </div>
 
-            <div className="sidebar-subtitle">
-              SecureOps
+            <div className="profile-header-info">
+
+              {editing ? (
+
+                <input
+                  className="profile-name-input"
+                  type="text"
+                  name="username"
+                  value={editData.username}
+                  onChange={
+                    handleProfileChange
+                  }
+                />
+
+              ) : (
+
+                <h2>
+                  {profile.username}
+                </h2>
+
+              )}
+
+              <p>
+                {role}
+              </p>
+
             </div>
 
-          </div>
+            {!editing && (
 
-        </div>
+              <button
+                className="profile-edit-button"
+                onClick={() => {
+                  setEditing(true);
+                  setMessage("");
+                  setError("");
+                }}
+                type="button"
+              >
+                ✎ Edit Profile
+              </button>
 
-        <div className="sidebar-menu">
-
-          <button
-            className="sidebar-item"
-            onClick={() =>
-              (window.location.href = "/dashboard")
-            }
-          >
-            <span>⌂</span>
-            Dashboard
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() =>
-              (window.location.href = "/assets")
-            }
-          >
-            <span>▤</span>
-            Assets
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() =>
-              (window.location.href = "/alerts")
-            }
-          >
-            <span>♧</span>
-            Alerts
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() =>
-              (window.location.href =
-                "/alert-history")
-            }
-          >
-            <span>...</span>
-            Alert History
-          </button>
-
-        </div>
-
-        <div className="sidebar-section">
-          PROFILE
-        </div>
-
-        <div className="sidebar-menu">
-
-          <button className="sidebar-item active">
-            <span>◯</span>
-            Profile
-          </button>
-
-        </div>
-
-        <div className="system-status">
-
-          <div className="system-status-icon">
-            ✓
-          </div>
-
-          <div>
-
-            <strong>
-              System Status
-            </strong>
-
-            <span>
-              All Systems Operational
-            </span>
+            )}
 
           </div>
 
-        </div>
+          <div className="profile-divider"></div>
 
-      </aside>
+          {editing ? (
 
-      {/* =========================
-          MAIN
-      ========================= */}
-
-      <main className="dashboard-main">
-
-        <header className="top-header">
-
-          <div className="search-box">
-
-            <span>⌕</span>
-
-            <input
-              type="text"
-              placeholder="Search..."
-            />
-
-          </div>
-
-          <div className="header-right">
-
-            <button
-              className="notification"
-              onClick={() =>
-                (window.location.href =
-                  "/alerts")
-              }
-              type="button"
-            >
-              🔔
-            </button>
-
-            <div
-              className="header-user"
-              onClick={() =>
-                (window.location.href =
-                  "/profile")
-              }
+            <form
+              className="profile-edit-form"
+              onSubmit={handleSaveProfile}
             >
 
-              <div className="avatar">
-                {profile.username
-                  .charAt(0)
-                  .toUpperCase()}
+              <div className="profile-form-group">
+
+                <label>
+                  Full Name
+                </label>
+
+                <input
+                  type="text"
+                  name="username"
+                  value={editData.username}
+                  onChange={
+                    handleProfileChange
+                  }
+                  required
+                />
+
               </div>
 
-              <div>
+              <div className="profile-form-group">
+
+                <label>
+                  Email Address
+                </label>
+
+                <input
+                  type="email"
+                  name="email"
+                  value={editData.email}
+                  onChange={
+                    handleProfileChange
+                  }
+                  required
+                />
+
+              </div>
+
+              <div className="profile-edit-actions">
+
+                <button
+                  type="button"
+                  className="profile-cancel-button"
+                  onClick={
+                    handleCancelEdit
+                  }
+                  disabled={saving}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="profile-save-button"
+                  disabled={saving}
+                >
+                  {saving
+                    ? "Saving..."
+                    : "Save Changes"}
+                </button>
+
+              </div>
+
+            </form>
+
+          ) : (
+
+            <div className="profile-details">
+
+              <div className="profile-detail">
+
+                <span>
+                  Full Name
+                </span>
 
                 <strong>
                   {profile.username}
                 </strong>
 
-                <small>
-                  {role}
-                </small>
+              </div>
+
+              <div className="profile-detail">
+
+                <span>
+                  Email Address
+                </span>
+
+                <strong>
+                  {profile.email ||
+                    "Not available"}
+                </strong>
 
               </div>
 
-              <span className="user-arrow">
-                ⌄
-              </span>
+              <div className="profile-detail">
+
+                <span>
+                  Account Role
+                </span>
+
+                <strong>
+                  {role}
+                </strong>
+
+              </div>
+
+              <div className="profile-detail">
+
+                <span>
+                  Account Status
+                </span>
+
+                <strong className="profile-status">
+
+                  <i></i>
+                  Active
+
+                </strong>
+
+              </div>
+
+            </div>
+
+          )}
+
+        </div>
+
+        {/* SECURITY */}
+
+        <div className="dashboard-card profile-security-card">
+
+          <div className="card-header">
+
+            <div>
+
+              <h2>
+                Account Security
+              </h2>
+
+              <p>
+                Keep your account secure.
+              </p>
 
             </div>
 
           </div>
 
-        </header>
+          {!passwordEditing ? (
 
-        {/* =========================
-            PAGE HEADING
-        ========================= */}
+            <>
 
-        <section className="page-heading">
+              <div className="security-item">
 
-          <div>
+                <div className="security-icon">
+                  🔐
+                </div>
 
-            <h1>
-              My Profile
-            </h1>
+                <div className="security-item-content">
 
-            <p>
-              Manage your SentinelCore account information.
-            </p>
+                  <strong>
+                    Password
+                  </strong>
 
-          </div>
+                  <span>
+                    Your password is securely protected.
+                  </span>
 
-        </section>
+                </div>
 
-        {/* =========================
-            MESSAGES
-        ========================= */}
-
-        {message && (
-          <div className="profile-success-message">
-            ✓ {message}
-          </div>
-        )}
-
-        {error && (
-          <div className="profile-error-message">
-            ! {error}
-          </div>
-        )}
-
-        {/* =========================
-            PROFILE
-        ========================= */}
-
-        <section className="profile-page">
-
-          <div className="dashboard-card profile-card">
-
-            <div className="profile-card-header">
-
-              <div className="profile-avatar-large">
-                {profile.username
-                  .charAt(0)
-                  .toUpperCase()}
-              </div>
-
-              <div className="profile-header-info">
-
-                {editing ? (
-
-                  <input
-                    className="profile-name-input"
-                    type="text"
-                    name="username"
-                    value={editData.username}
-                    onChange={
-                      handleProfileChange
-                    }
-                  />
-
-                ) : (
-
-                  <h2>
-                    {profile.username}
-                  </h2>
-
-                )}
-
-                <p>
-                  {role}
-                </p>
-
-              </div>
-
-              {!editing && (
                 <button
-                  className="profile-edit-button"
+                  className="security-action-button"
                   onClick={() => {
-                    setEditing(true);
+                    setPasswordEditing(true);
                     setMessage("");
                     setError("");
                   }}
                   type="button"
                 >
-                  ✎ Edit Profile
+                  Change
                 </button>
-              )}
 
-            </div>
+              </div>
 
-            <div className="profile-divider"></div>
+              <div className="security-item">
 
-            {editing ? (
-
-              <form
-                className="profile-edit-form"
-                onSubmit={handleSaveProfile}
-              >
-
-                <div className="profile-form-group">
-
-                  <label>
-                    Full Name
-                  </label>
-
-                  <input
-                    type="text"
-                    name="username"
-                    value={editData.username}
-                    onChange={
-                      handleProfileChange
-                    }
-                    required
-                  />
-
+                <div className="security-icon">
+                  🛡
                 </div>
 
-                <div className="profile-form-group">
-
-                  <label>
-                    Email Address
-                  </label>
-
-                  <input
-                    type="email"
-                    name="email"
-                    value={editData.email}
-                    onChange={
-                      handleProfileChange
-                    }
-                    required
-                  />
-
-                </div>
-
-                <div className="profile-edit-actions">
-
-                  <button
-                    type="button"
-                    className="profile-cancel-button"
-                    onClick={
-                      handleCancelEdit
-                    }
-                    disabled={saving}
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="profile-save-button"
-                    disabled={saving}
-                  >
-                    {saving
-                      ? "Saving..."
-                      : "Save Changes"}
-                  </button>
-
-                </div>
-
-              </form>
-
-            ) : (
-
-              <div className="profile-details">
-
-                <div className="profile-detail">
-
-                  <span>
-                    Full Name
-                  </span>
+                <div>
 
                   <strong>
-                    {profile.username}
+                    Account Protection
                   </strong>
-
-                </div>
-
-                <div className="profile-detail">
 
                   <span>
-                    Email Address
+                    SentinelCore security controls are active.
                   </span>
-
-                  <strong>
-                    {profile.email ||
-                      "Not available"}
-                  </strong>
-
-                </div>
-
-                <div className="profile-detail">
-
-                  <span>
-                    Account Role
-                  </span>
-
-                  <strong>
-                    {role}
-                  </strong>
-
-                </div>
-
-                <div className="profile-detail">
-
-                  <span>
-                    Account Status
-                  </span>
-
-                  <strong className="profile-status">
-                    <i></i>
-                    Active
-                  </strong>
 
                 </div>
 
               </div>
 
-            )}
+            </>
 
-          </div>
+          ) : (
 
-          {/* =========================
-              SECURITY
-          ========================= */}
+            <form
+              className="password-form"
+              onSubmit={
+                handleChangePassword
+              }
+            >
 
-          <div className="dashboard-card profile-security-card">
+              <div className="profile-form-group">
 
-            <div className="card-header">
+                <label>
+                  Current Password
+                </label>
 
-              <div>
-
-                <h2>
-                  Account Security
-                </h2>
-
-                <p>
-                  Keep your account secure.
-                </p>
+                <input
+                  type="password"
+                  name="currentPassword"
+                  value={
+                    passwordData.currentPassword
+                  }
+                  onChange={
+                    handlePasswordChange
+                  }
+                  placeholder="Enter current password"
+                  required
+                />
 
               </div>
 
-            </div>
+              <div className="profile-form-group">
 
-            {!passwordEditing ? (
+                <label>
+                  New Password
+                </label>
 
-              <>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={
+                    passwordData.newPassword
+                  }
+                  onChange={
+                    handlePasswordChange
+                  }
+                  placeholder="Enter new password"
+                  required
+                />
 
-                <div className="security-item">
+              </div>
 
-                  <div className="security-icon">
-                    🔐
-                  </div>
+              <div className="profile-form-group">
 
-                  <div className="security-item-content">
+                <label>
+                  Confirm New Password
+                </label>
 
-                    <strong>
-                      Password
-                    </strong>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={
+                    passwordData.confirmPassword
+                  }
+                  onChange={
+                    handlePasswordChange
+                  }
+                  placeholder="Confirm new password"
+                  required
+                />
 
-                    <span>
-                      Your password is securely protected.
-                    </span>
+              </div>
 
-                  </div>
+              <div className="profile-edit-actions">
 
-                  <button
-                    className="security-action-button"
-                    onClick={() => {
-                      setPasswordEditing(true);
-                      setMessage("");
-                      setError("");
-                    }}
-                    type="button"
-                  >
-                    Change
-                  </button>
+                <button
+                  type="button"
+                  className="profile-cancel-button"
+                  onClick={() => {
+                    setPasswordEditing(false);
 
-                </div>
+                    setPasswordData({
+                      currentPassword: "",
+                      newPassword: "",
+                      confirmPassword: ""
+                    });
 
-                <div className="security-item">
+                    setError("");
+                  }}
+                  disabled={passwordSaving}
+                >
+                  Cancel
+                </button>
 
-                  <div className="security-icon">
-                    🛡
-                  </div>
+                <button
+                  type="submit"
+                  className="profile-save-button"
+                  disabled={passwordSaving}
+                >
+                  {passwordSaving
+                    ? "Updating..."
+                    : "Update Password"}
+                </button>
 
-                  <div>
+              </div>
 
-                    <strong>
-                      Account Protection
-                    </strong>
+            </form>
 
-                    <span>
-                      SentinelCore security controls are active.
-                    </span>
+          )}
 
-                  </div>
+        </div>
 
-                </div>
+      </section>
 
-              </>
-
-            ) : (
-
-              <form
-                className="password-form"
-                onSubmit={
-                  handleChangePassword
-                }
-              >
-
-                <div className="profile-form-group">
-
-                  <label>
-                    Current Password
-                  </label>
-
-                  <input
-                    type="password"
-                    name="currentPassword"
-                    value={
-                      passwordData.currentPassword
-                    }
-                    onChange={
-                      handlePasswordChange
-                    }
-                    placeholder="Enter current password"
-                    required
-                  />
-
-                </div>
-
-                <div className="profile-form-group">
-
-                  <label>
-                    New Password
-                  </label>
-
-                  <input
-                    type="password"
-                    name="newPassword"
-                    value={
-                      passwordData.newPassword
-                    }
-                    onChange={
-                      handlePasswordChange
-                    }
-                    placeholder="Enter new password"
-                    required
-                  />
-
-                </div>
-
-                <div className="profile-form-group">
-
-                  <label>
-                    Confirm New Password
-                  </label>
-
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={
-                      passwordData.confirmPassword
-                    }
-                    onChange={
-                      handlePasswordChange
-                    }
-                    placeholder="Confirm new password"
-                    required
-                  />
-
-                </div>
-
-                <div className="profile-edit-actions">
-
-                  <button
-                    type="button"
-                    className="profile-cancel-button"
-                    onClick={() => {
-                      setPasswordEditing(false);
-
-                      setPasswordData({
-                        currentPassword: "",
-                        newPassword: "",
-                        confirmPassword: ""
-                      });
-
-                      setError("");
-                    }}
-                    disabled={passwordSaving}
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    className="profile-save-button"
-                    disabled={passwordSaving}
-                  >
-                    {passwordSaving
-                      ? "Updating..."
-                      : "Update Password"}
-                  </button>
-
-                </div>
-
-              </form>
-
-            )}
-
-          </div>
-
-        </section>
-
-      </main>
-
-    </div>
+    </DashboardLayout>
   );
 };
 
