@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getAllAssets, searchAssets } from "../api/assetApi";
 import AddAsset from "./AddAsset";
+import DashboardLayout from "./DashboardLayout";
+import { useAuth } from "../context/AuthContext";
 import "../styles/Dashboard.css";
 
 function Assets() {
@@ -14,6 +16,11 @@ function Assets() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const assetsPerPage = 10;
+
+  const { isAdmin, logout } = useAuth();
+
+  const username =
+    localStorage.getItem("username") || "Admin";
 
   const loadAssets = async () => {
     try {
@@ -108,448 +115,352 @@ function Assets() {
   };
 
   return (
-    <div className="dashboard">
+    <DashboardLayout
+      search={search}
+      setSearch={handleSearch}
+      username={username}
+      isAdmin={isAdmin}
+      logout={logout}
+      onAddAsset={() => setOpen(true)}
+    >
 
-      {/* SIDEBAR */}
+      {/* PAGE HEADING */}
 
-      <aside className="sidebar">
+      <section className="page-heading">
 
-        <div className="sidebar-logo-area">
+        <div>
 
-          <div className="sidebar-shield">
-            S
-          </div>
-
-          <div>
-
-            <div className="sidebar-title">
-              Sentinel<span>Core</span>
-            </div>
-
-            <div className="sidebar-subtitle">
-              SecureOps
-            </div>
-
-          </div>
-
-        </div>
-
-        <div className="sidebar-menu">
-
-          <button className="sidebar-item">
-            <span>⌂</span>
-            Dashboard
-          </button>
-
-          <button className="sidebar-item active">
-            <span>▤</span>
+          <h1>
             Assets
-          </button>
+          </h1>
 
-          <button className="sidebar-item">
-            <span>♧</span>
-            Alerts
-          </button>
-
-          <button className="sidebar-item">
-            <span>◷</span>
-            Alert History
-          </button>
+          <p>
+            Manage and monitor your infrastructure assets.
+          </p>
 
         </div>
 
-        <div className="sidebar-section">
-          PROFILE
-        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px"
+          }}
+        >
 
-        <div className="sidebar-menu">
-
-          <button className="sidebar-item">
-            <span>◯</span>
-            Profile
-          </button>
-
-          <button className="sidebar-item">
-            <span>↪</span>
-            Logout
-          </button>
-
-        </div>
-
-        <div className="system-status">
-
-          <div className="system-status-icon">
-            ✓
-          </div>
-
-          <div>
-
-            <strong>
-              System Status
-            </strong>
-
-            <span>
-              All Systems Operational
-            </span>
-
-          </div>
-
-        </div>
-
-      </aside>
-
-      {/* MAIN */}
-
-      <main className="dashboard-main">
-
-        <header className="top-header">
-
-          <div className="search-box">
-
-            <span>⌕</span>
-
-            <input
-              type="text"
-              placeholder="Search assets..."
-              value={search}
-              onChange={(e) =>
-                handleSearch(e.target.value)
-              }
-
-            />
-
-          </div>
-
-        </header>
-
-        {/* PAGE HEADING */}
-
-        <section className="page-heading">
-
-          <div>
-
-            <h1>
-              Assets
-            </h1>
-
-            <p>
-              Manage and monitor your infrastructure assets.
-            </p>
-
-          </div>
-
-          <div
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              handleStatusFilter(e.target.value)
+            }
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px"
+              padding: "10px 14px",
+              borderRadius: "8px",
+              border: "1px solid #d1d5db",
+              background: "#ffffff",
+              fontSize: "14px",
+              cursor: "pointer"
             }}
           >
 
-            <select
-              value={statusFilter}
-              onChange={(e) =>
-                handleStatusFilter(e.target.value)
-              }
-              style={{
-                padding: "10px 14px",
-                borderRadius: "8px",
-                border: "1px solid #d1d5db",
-                background: "#ffffff",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              <option value="">
-                All Status
-              </option>
+            <option value="">
+              All Status
+            </option>
 
-              <option value="ONLINE">
-                Online
-              </option>
+            <option value="ONLINE">
+              Online
+            </option>
 
-              <option value="WARNING">
-                Warning
-              </option>
+            <option value="WARNING">
+              Warning
+            </option>
 
-              <option value="CRITICAL">
-                Critical
-              </option>
+            <option value="CRITICAL">
+              Critical
+            </option>
 
-            </select>
+          </select>
 
-            <button
-              className="create-button"
-              onClick={() => setOpen(true)}
-            >
-              + Add Asset
-            </button>
+          {isAdmin && (
+  <button
+    className="create-button"
+    onClick={() => setOpen(true)}
+  >
+    + Add Asset
+  </button>
+)}
+        </div>
 
-          </div>
+      </section>
 
-        </section>
+      {/* ASSET TABLE */}
 
-        {/* ASSET TABLE */}
+      <section className="bottom-grid">
 
-        <section className="bottom-grid">
+        <div
+          className="dashboard-card table-card"
+          style={{ gridColumn: "span 2" }}
+        >
 
-          <div
-            className="dashboard-card table-card"
-            style={{ gridColumn: "span 2" }}
-          >
+          <div className="card-header">
 
-            <div className="card-header">
+            <div>
 
-              <div>
+              <h2>
+                All Assets
+              </h2>
 
-                <h2>
-                  All Assets
-                </h2>
-
-                <p>
-                  Infrastructure assets currently being monitored
-                </p>
-
-              </div>
+              <p>
+                Infrastructure assets currently being monitored
+              </p>
 
             </div>
 
-            <div className="table-container">
+          </div>
 
-              {loading ? (
+          <div className="table-container">
 
-                <div className="empty-table">
-                  Loading assets...
-                </div>
+            {loading ? (
 
-              ) : (
+              <div className="empty-table">
+                Loading assets...
+              </div>
 
-                <>
+            ) : (
 
-                  <table>
+              <>
 
-                    <thead>
+                <table>
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Asset Name
+                      </th>
+
+                      <th>
+                        Type
+                      </th>
+
+                      <th>
+                        IP Address
+                      </th>
+
+                      <th>
+                        CPU
+                      </th>
+
+                      <th>
+                        Memory
+                      </th>
+
+                      <th>
+                        Disk
+                      </th>
+
+                      <th>
+                        Network
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {assets.length > 0 ? (
+
+                      currentAssets.map((asset) => {
+
+                        const status =
+                          String(
+                            asset.status || ""
+                          ).toUpperCase();
+
+                        return (
+
+                          <tr key={asset.id}>
+
+                            <td>
+
+                              <strong>
+                                {asset.assetName}
+                              </strong>
+
+                            </td>
+
+                            <td>
+                              {asset.assetType}
+                            </td>
+
+                            <td>
+                              {asset.ipAddress}
+                            </td>
+
+                            <td>
+                              {asset.cpuUsage}%
+                            </td>
+
+                            <td>
+                              {asset.memoryUsage}%
+                            </td>
+
+                            <td>
+                              {asset.diskUsage}%
+                            </td>
+
+                            <td>
+                              {asset.networkUsage}%
+                            </td>
+
+                            <td>
+
+                              <span className="status-text">
+
+                                <i
+                                  className={`dot ${
+                                    status === "CRITICAL"
+                                      ? "critical"
+                                      : status === "WARNING"
+                                      ? "warning"
+                                      : "online"
+                                  }`}
+                                ></i>
+
+                                {status}
+
+                              </span>
+
+                            </td>
+
+                          </tr>
+
+                        );
+
+                      })
+
+                    ) : (
 
                       <tr>
 
-                        <th>
-                          Asset Name
-                        </th>
-
-                        <th>
-                          Type
-                        </th>
-
-                        <th>
-                          IP Address
-                        </th>
-
-                        <th>
-                          CPU
-                        </th>
-
-                        <th>
-                          Memory
-                        </th>
-
-                        <th>
-                          Disk
-                        </th>
-
-                        <th>
-                          Network
-                        </th>
-
-                        <th>
-                          Status
-                        </th>
+                        <td
+                          colSpan="8"
+                          className="empty-table"
+                        >
+                          No assets available.
+                        </td>
 
                       </tr>
 
-                    </thead>
+                    )}
 
-                    <tbody>
+                  </tbody>
 
-                      {assets.length > 0 ? (
+                </table>
 
-                        currentAssets.map((asset) => {
+                {/* Pagination */}
 
-                          const status =
-                            String(
-                              asset.status || ""
-                            ).toUpperCase();
+                {totalPages > 1 && (
 
-                          return (
+                  <div className="alert-pagination">
 
-                            <tr key={asset.id}>
+                    <div className="alert-pagination-info">
 
-                              <td>
-
-                                <strong>
-                                  {asset.assetName}
-                                </strong>
-
-                              </td>
-
-                              <td>
-                                {asset.assetType}
-                              </td>
-
-                              <td>
-                                {asset.ipAddress}
-                              </td>
-
-                              <td>
-                                {asset.cpuUsage}%
-                              </td>
-
-                              <td>
-                                {asset.memoryUsage}%
-                              </td>
-
-                              <td>
-                                {asset.diskUsage}%
-                              </td>
-
-                              <td>
-                                {asset.networkUsage}%
-                              </td>
-
-                              <td>
-
-                                <span className="status-text">
-
-                                  <i
-                                    className={`dot ${
-                                      status === "CRITICAL"
-                                        ? "critical"
-                                        : status === "WARNING"
-                                        ? "warning"
-                                        : "online"
-                                    }`}
-                                  ></i>
-
-                                  {status}
-
-                                </span>
-
-                              </td>
-
-                            </tr>
-
-                          );
-
-                        })
-
-                      ) : (
-
-                        <tr>
-
-                          <td
-                            colSpan="8"
-                            className="empty-table"
-                          >
-                            No assets available.
-                          </td>
-
-                        </tr>
-
-                      )}
-
-                    </tbody>
-
-                  </table>
-
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="alert-pagination">
-
-                      <div className="alert-pagination-info">
-                        Showing {startIndex + 1}-
-                        {Math.min(
-                          endIndex,
-                          assets.length
-                        )}{" "}
-                        of {assets.length} assets
-                      </div>
-
-                      <div className="alert-pagination-controls">
-
-                        <button
-                          className="pagination-button"
-                          onClick={() =>
-                            goToPage(currentPage - 1)
-                          }
-                          disabled={currentPage === 1}
-                        >
-                          ← Previous
-                        </button>
-
-                        {Array.from(
-                          { length: totalPages },
-                          (_, index) => index + 1
-                        ).map((page) => (
-                          <button
-                            key={page}
-                            className={`pagination-number ${
-                              currentPage === page
-                                ? "active"
-                                : ""
-                            }`}
-                            onClick={() =>
-                              goToPage(page)
-                            }
-                          >
-                            {page}
-                          </button>
-                        ))}
-
-                        <button
-                          className="pagination-button"
-                          onClick={() =>
-                            goToPage(currentPage + 1)
-                          }
-                          disabled={
-                            currentPage === totalPages
-                          }
-                        >
-                          Next →
-                        </button>
-
-                      </div>
+                      Showing {startIndex + 1}-
+                      {Math.min(
+                        endIndex,
+                        assets.length
+                      )}{" "}
+                      of {assets.length} assets
 
                     </div>
-                  )}
 
-                </>
+                    <div className="alert-pagination-controls">
 
-              )}
+                      <button
+                        className="pagination-button"
+                        onClick={() =>
+                          goToPage(currentPage - 1)
+                        }
+                        disabled={currentPage === 1}
+                      >
+                        ← Previous
+                      </button>
 
-            </div>
+                      {Array.from(
+                        { length: totalPages },
+                        (_, index) => index + 1
+                      ).map((page) => (
+
+                        <button
+                          key={page}
+                          className={`pagination-number ${
+                            currentPage === page
+                              ? "active"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            goToPage(page)
+                          }
+                        >
+                          {page}
+                        </button>
+
+                      ))}
+
+                      <button
+                        className="pagination-button"
+                        onClick={() =>
+                          goToPage(currentPage + 1)
+                        }
+                        disabled={
+                          currentPage === totalPages
+                        }
+                      >
+                        Next →
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                )}
+
+              </>
+
+            )}
 
           </div>
 
-        </section>
+        </div>
 
-        <footer className="dashboard-footer">
+      </section>
 
-          © 2026 SentinelCore SecureOps.
-          All rights reserved.
+      <footer className="dashboard-footer">
 
-        </footer>
+        © 2026 SentinelCore SecureOps.
+        All rights reserved.
 
-      </main>
+      </footer>
 
       {/* ADD ASSET MODAL */}
 
       {open && (
+
         <AddAsset
           onClose={() => setOpen(false)}
           onAssetCreated={loadAssets}
         />
+
       )}
 
-    </div>
+    </DashboardLayout>
   );
 }
 
