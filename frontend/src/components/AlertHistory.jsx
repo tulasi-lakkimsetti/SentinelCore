@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { getAlertHistory } from "../api/assetApi";
+import DashboardLayout from "./DashboardLayout";
+import { useAuth } from "../context/AuthContext";
 
 const AlertHistory = () => {
   const [alerts, setAlerts] = useState([]);
@@ -10,6 +12,11 @@ const AlertHistory = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const alertsPerPage = 10;
+
+  const { isAdmin } = useAuth();
+
+  const username =
+    localStorage.getItem("username") || "Admin";
 
   const loadAlertHistory = async () => {
     try {
@@ -68,7 +75,8 @@ const AlertHistory = () => {
   const startIndex =
     (currentPage - 1) * alertsPerPage;
 
-  const endIndex = startIndex + alertsPerPage;
+  const endIndex =
+    startIndex + alertsPerPage;
 
   const currentAlerts = filteredAlerts.slice(
     startIndex,
@@ -112,402 +120,355 @@ const AlertHistory = () => {
   };
 
   return (
-    <div className="dashboard">
+    <DashboardLayout
+      search=""
+      setSearch={() => {}}
+      username={username}
+      isAdmin={isAdmin}
+      onAddAsset={() => {}}
+    >
 
-      {/* Sidebar */}
-      <aside className="sidebar">
+      {/* Page Header */}
 
-        <div className="sidebar-logo-area">
-          <div className="sidebar-shield">S</div>
+      <div className="page-heading">
 
-          <div>
-            <div className="sidebar-title">
-              SENTINEL<span>CORE</span>
-            </div>
+        <div>
 
-            <div className="sidebar-subtitle">
-              SECUREOPS
-            </div>
-          </div>
-        </div>
-
-        <div className="sidebar-menu">
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/dashboard";
-            }}
-          >
-            <span>▦</span>
-            Dashboard
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/assets";
-            }}
-          >
-            <span>▤</span>
-            Assets
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/dashboard";
-            }}
-          >
-            <span>♧</span>
-            Alerts
-          </button>
-
-          <button className="sidebar-item active">
-            <span>◷</span>
+          <h1>
             Alert History
-          </button>
+          </h1>
 
-          <div className="sidebar-section">
-            PROFILE
-          </div>
-
-          <button className="sidebar-item">
-            <span>◉</span>
-            Profile
-          </button>
-
-          <button className="sidebar-item">
-            <span>↪</span>
-            Logout
-          </button>
-        </div>
-
-        <div className="system-status">
-          <div className="system-status-icon">
-            ✓
-          </div>
-
-          <div>
-            <strong>All Systems Operational</strong>
-            <span>Monitoring active</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main */}
-      <div className="dashboard-main">
-
-        {/* Header */}
-        <header className="top-header">
-
-          <div className="search-box">
-            <span>⌕</span>
-
-            <input
-              type="text"
-              placeholder="Search..."
-              readOnly
-            />
-          </div>
-
-          <div className="header-right">
-
-            <button className="notification">
-              ♧
-            </button>
-
-            <div className="header-user">
-
-              <div className="avatar">
-                S
-              </div>
-
-              <div>
-                <strong>Student</strong>
-                <small>Administrator</small>
-              </div>
-
-              <span className="user-arrow">
-                ⌄
-              </span>
-
-            </div>
-          </div>
-        </header>
-
-        {/* Page Header */}
-        <div className="page-heading">
-
-          <div>
-            <h1>Alert History</h1>
-
-            <p>
-              Review and monitor previously resolved alerts
-            </p>
-          </div>
-
-          <button
-            className="view-all"
-            onClick={loadAlertHistory}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "↻ Refresh"}
-          </button>
+          <p>
+            Review and monitor previously resolved alerts
+          </p>
 
         </div>
 
-        {/* History Card */}
-        <div className="alert-history-wrapper">
+        <button
+          className="view-all"
+          onClick={loadAlertHistory}
+          disabled={loading}
+        >
+          {loading
+            ? "Loading..."
+            : "↻ Refresh"}
+        </button>
 
-          <div className="dashboard-card alert-history-card">
+      </div>
 
-            {/* Card Header */}
-            <div className="alert-history-header">
+      {/* History Card */}
 
-              <div>
-                <h2>Resolved Alerts</h2>
+      <div className="alert-history-wrapper">
 
-                <p>
-                  {filteredAlerts.length} alert
-                  {filteredAlerts.length !== 1 ? "s" : ""}
-                  {" "}shown
-                </p>
-              </div>
+        <div className="dashboard-card alert-history-card">
 
-              <div className="alert-history-count">
-                {alerts.length} Total
-              </div>
+          {/* Card Header */}
+
+          <div className="alert-history-header">
+
+            <div>
+
+              <h2>
+                Resolved Alerts
+              </h2>
+
+              <p>
+                {filteredAlerts.length} alert
+                {filteredAlerts.length !== 1
+                  ? "s"
+                  : ""}{" "}
+                shown
+              </p>
 
             </div>
 
-            {/* Filters */}
-            <div className="alert-history-toolbar">
+            <div className="alert-history-count">
+              {alerts.length} Total
+            </div>
 
-              <div className="alert-history-search">
+          </div>
 
-                <span>⌕</span>
+          {/* Filters */}
 
-                <input
-                  type="text"
-                  placeholder="Search alert ID, asset ID or message..."
-                  value={search}
-                  onChange={(e) =>
-                    setSearch(e.target.value)
-                  }
-                />
+          <div className="alert-history-toolbar">
 
-              </div>
+            <div className="alert-history-search">
 
-              <select
-                value={severityFilter}
+              <span>⌕</span>
+
+              <input
+                type="text"
+                placeholder="Search alert ID, asset ID or message..."
+                value={search}
                 onChange={(e) =>
-                  setSeverityFilter(e.target.value)
+                  setSearch(e.target.value)
                 }
-                className="alert-history-filter"
-              >
-                <option value="ALL">
-                  All Severities
-                </option>
-
-                <option value="CRITICAL">
-                  Critical
-                </option>
-
-                <option value="HIGH">
-                  High
-                </option>
-
-                <option value="WARNING">
-                  Warning
-                </option>
-
-                <option value="MEDIUM">
-                  Medium
-                </option>
-
-                <option value="LOW">
-                  Low
-                </option>
-              </select>
+              />
 
             </div>
 
-            {/* Table */}
-            {loading ? (
-              <div className="alert-history-empty">
-                <div className="alert-history-loading">
-                  Loading alert history...
-                </div>
-              </div>
-            ) : filteredAlerts.length === 0 ? (
-              <div className="alert-history-empty">
+            <select
+              value={severityFilter}
+              onChange={(e) =>
+                setSeverityFilter(e.target.value)
+              }
+              className="alert-history-filter"
+            >
 
-                <div className="alert-history-empty-icon">
-                  ✓
-                </div>
+              <option value="ALL">
+                All Severities
+              </option>
 
-                <h3>
-                  No resolved alerts found
-                </h3>
+              <option value="CRITICAL">
+                Critical
+              </option>
 
-                <p>
-                  Try changing your search or filter.
-                </p>
+              <option value="HIGH">
+                High
+              </option>
 
-              </div>
-            ) : (
-              <>
-                <div className="table-container alert-history-table-container">
+              <option value="WARNING">
+                Warning
+              </option>
 
-                  <table className="alert-history-table">
+              <option value="MEDIUM">
+                Medium
+              </option>
 
-                    <thead>
-                      <tr>
-                        <th>Alert</th>
-                        <th>Asset</th>
-                        <th>Severity</th>
-                        <th>Message</th>
-                        <th>Created</th>
-                        <th>Resolved</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
+              <option value="LOW">
+                Low
+              </option>
 
-                    <tbody>
-
-                      {currentAlerts.map((alert) => (
-
-                        <tr key={alert.id}>
-
-                          <td>
-                            <div className="alert-history-id">
-                              #{alert.id}
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="alert-history-asset">
-                              Asset #{alert.assetId}
-                            </div>
-                          </td>
-
-                          <td>
-                            <span
-                              className={getSeverityClass(
-                                alert.severity
-                              )}
-                            >
-                              {alert.severity}
-                            </span>
-                          </td>
-
-                          <td>
-                            <div className="alert-history-message">
-                              {alert.message || "-"}
-                            </div>
-                          </td>
-
-                          <td>
-                            <span className="alert-history-date">
-                              {formatDate(alert.createdAt)}
-                            </span>
-                          </td>
-
-                          <td>
-                            <span className="alert-history-date">
-                              {formatDate(alert.resolvedAt)}
-                            </span>
-                          </td>
-
-                          <td>
-                            <span className="alert-history-status">
-                              <span className="alert-history-status-dot" />
-                              Resolved
-                            </span>
-                          </td>
-
-                        </tr>
-
-                      ))}
-
-                    </tbody>
-
-                  </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="alert-pagination">
-
-                    <div className="alert-pagination-info">
-                      Showing {startIndex + 1}-
-                      {Math.min(
-                        endIndex,
-                        filteredAlerts.length
-                      )}{" "}
-                      of {filteredAlerts.length} alerts
-                    </div>
-
-                    <div className="alert-pagination-controls">
-
-                      <button
-                        className="pagination-button"
-                        onClick={() =>
-                          goToPage(currentPage - 1)
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        ← Previous
-                      </button>
-
-                      {Array.from(
-                        { length: totalPages },
-                        (_, index) => index + 1
-                      ).map((page) => (
-                        <button
-                          key={page}
-                          className={`pagination-number ${
-                            currentPage === page
-                              ? "active"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            goToPage(page)
-                          }
-                        >
-                          {page}
-                        </button>
-                      ))}
-
-                      <button
-                        className="pagination-button"
-                        onClick={() =>
-                          goToPage(currentPage + 1)
-                        }
-                        disabled={
-                          currentPage === totalPages
-                        }
-                      >
-                        Next →
-                      </button>
-
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            </select>
 
           </div>
 
-        </div>
+          {/* Table */}
 
-        <div className="dashboard-footer">
-          SentinelCore SecureOps • Alert History
+          {loading ? (
+
+            <div className="alert-history-empty">
+
+              <div className="alert-history-loading">
+                Loading alert history...
+              </div>
+
+            </div>
+
+          ) : filteredAlerts.length === 0 ? (
+
+            <div className="alert-history-empty">
+
+              <div className="alert-history-empty-icon">
+                ✓
+              </div>
+
+              <h3>
+                No resolved alerts found
+              </h3>
+
+              <p>
+                Try changing your search or filter.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <>
+
+              <div className="table-container alert-history-table-container">
+
+                <table className="alert-history-table">
+
+                  <thead>
+
+                    <tr>
+                      <th>Alert</th>
+                      <th>Asset</th>
+                      <th>Severity</th>
+                      <th>Message</th>
+                      <th>Created</th>
+                      <th>Resolved</th>
+                      <th>Status</th>
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {currentAlerts.map((alert) => (
+
+                      <tr key={alert.id}>
+
+                        <td>
+
+                          <div className="alert-history-id">
+                            #{alert.id}
+                          </div>
+
+                        </td>
+
+                        <td>
+
+                          <div className="alert-history-asset">
+                            Asset #{alert.assetId}
+                          </div>
+
+                        </td>
+
+                        <td>
+
+                          <span
+                            className={getSeverityClass(
+                              alert.severity
+                            )}
+                          >
+                            {alert.severity}
+                          </span>
+
+                        </td>
+
+                        <td>
+
+                          <div className="alert-history-message">
+                            {alert.message || "-"}
+                          </div>
+
+                        </td>
+
+                        <td>
+
+                          <span className="alert-history-date">
+                            {formatDate(
+                              alert.createdAt
+                            )}
+                          </span>
+
+                        </td>
+
+                        <td>
+
+                          <span className="alert-history-date">
+                            {formatDate(
+                              alert.resolvedAt
+                            )}
+                          </span>
+
+                        </td>
+
+                        <td>
+
+                          <span className="alert-history-status">
+
+                            <span className="alert-history-status-dot" />
+
+                            Resolved
+
+                          </span>
+
+                        </td>
+
+                      </tr>
+
+                    ))}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+              {/* Pagination */}
+
+              {totalPages > 1 && (
+
+                <div className="alert-pagination">
+
+                  <div className="alert-pagination-info">
+
+                    Showing {startIndex + 1}-
+                    {Math.min(
+                      endIndex,
+                      filteredAlerts.length
+                    )}{" "}
+                    of {filteredAlerts.length} alerts
+
+                  </div>
+
+                  <div className="alert-pagination-controls">
+
+                    <button
+                      className="pagination-button"
+                      onClick={() =>
+                        goToPage(
+                          currentPage - 1
+                        )
+                      }
+                      disabled={
+                        currentPage === 1
+                      }
+                    >
+                      ← Previous
+                    </button>
+
+                    {Array.from(
+                      { length: totalPages },
+                      (_, index) =>
+                        index + 1
+                    ).map((page) => (
+
+                      <button
+                        key={page}
+                        className={`pagination-number ${
+                          currentPage ===
+                          page
+                            ? "active"
+                            : ""
+                        }`}
+                        onClick={() =>
+                          goToPage(page)
+                        }
+                      >
+                        {page}
+                      </button>
+
+                    ))}
+
+                    <button
+                      className="pagination-button"
+                      onClick={() =>
+                        goToPage(
+                          currentPage + 1
+                        )
+                      }
+                      disabled={
+                        currentPage ===
+                        totalPages
+                      }
+                    >
+                      Next →
+                    </button>
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </>
+
+          )}
+
         </div>
 
       </div>
-    </div>
+
+      <div className="dashboard-footer">
+        SentinelCore SecureOps • Alert History
+      </div>
+
+    </DashboardLayout>
   );
 };
 

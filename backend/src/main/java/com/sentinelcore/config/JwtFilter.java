@@ -28,6 +28,19 @@ public class JwtFilter extends OncePerRequestFilter {
         this.jwtUtil = jwtUtil;
     }
 
+    /*
+     * Do not process JWT for authentication endpoints.
+     * These endpoints are already permitted in SecurityConfig.
+     */
+    @Override
+    protected boolean shouldNotFilter(
+            HttpServletRequest request) {
+
+        String path = request.getServletPath();
+
+        return path.startsWith("/api/auth/");
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -49,33 +62,41 @@ public class JwtFilter extends OncePerRequestFilter {
 
             if (jwtUtil.validateToken(token)) {
 
-                String username = jwtUtil.extractUsername(token);
+                String username =
+                        jwtUtil.extractUsername(token);
 
                 List<SimpleGrantedAuthority> authorities =
                         Collections.emptyList();
 
                 try {
+
                     Claims claims = Jwts.parser()
                             .verifyWith(jwtUtil.getKey())
                             .build()
                             .parseSignedClaims(token)
                             .getPayload();
 
-                    List<?> roles = claims.get("roles", List.class);
+                    List<?> roles =
+                            claims.get("roles", List.class);
 
                     if (roles != null) {
+
                         authorities = roles.stream()
-                                .map(role -> role.toString().startsWith("ROLE_")
-                                        ? role.toString()
-                                        : "ROLE_" + role.toString())
+                                .map(role ->
+                                        role.toString()
+                                                .startsWith("ROLE_")
+                                                ? role.toString()
+                                                : "ROLE_" + role.toString()
+                                )
                                 .map(SimpleGrantedAuthority::new)
                                 .toList();
                     }
 
                 } catch (Exception ignored) {
-                    authorities = Collections.emptyList();
+
+                    authorities =
+                            Collections.emptyList();
                 }
-                
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(

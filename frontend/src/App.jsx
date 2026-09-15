@@ -6,6 +6,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Alerts from "./components/Alerts";
 import AlertHistory from "./components/AlertHistory";
 import Profile from "./components/Profile";
+import ViewerDashboard from "./components/ViewerDashboard";
 function App() {
   return (
     <AuthProvider>
@@ -33,6 +34,10 @@ function App() {
            <Route path="/profile"
             element={<Profile />} 
             />
+            <Route
+  path="/viewer-dashboard"
+  element={<ViewerDashboard />}
+/>
 
         </Routes>
       </BrowserRouter>

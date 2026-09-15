@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 import {
   ResponsiveContainer,
@@ -21,7 +20,7 @@ import {
 
 import { useAuth } from "../context/AuthContext";
 import AddAsset from "./AddAsset";
-import NotificationBell from "./NotificationBell";
+import DashboardLayout from "./DashboardLayout";
 import "../styles/Dashboard.css";
 
 function Dashboard() {
@@ -36,10 +35,8 @@ function Dashboard() {
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const navigate = useNavigate();
 
-  const { isAdmin, logout } = useAuth();
+  const { isAdmin } = useAuth();
 
   /* =========================
      LOAD DASHBOARD DATA
@@ -257,1009 +254,790 @@ function Dashboard() {
     }
   );
 
-  /* =========================
-     LOGOUT
-  ========================= */
-
-  const handleLogout = () => {
-    logout();
-    window.location.href = "/";
-  };
-
-  /* =========================
-     PROFILE NAVIGATION
-  ========================= */
-
-  const handleProfileClick = () => {
-  navigate("/profile");
-};
-
   return (
-    <div className="dashboard">
+    <DashboardLayout
+      search={search}
+      setSearch={setSearch}
+      username={username}
+      isAdmin={isAdmin}
+      onAddAsset={() => setOpen(true)}
+    >
 
       {/* =========================
-          SIDEBAR
+          PAGE TITLE
       ========================= */}
 
-      <aside
-        className={`sidebar ${
-          sidebarOpen ? "sidebar-open" : ""
-        }`}
-      >
+      <section className="page-heading">
 
-        <div className="sidebar-logo-area">
+        <div>
 
-          <div className="sidebar-shield">
-            S
+          <h1>
+            Dashboard
+          </h1>
+
+          <p>
+            Welcome back, {username}!
+          </p>
+
+        </div>
+
+        <div className="date-card">
+
+          <span>▣</span>
+
+          {currentDate}
+
+        </div>
+
+      </section>
+
+      {/* =========================
+          SUMMARY CARDS
+      ========================= */}
+
+      <section className="summary-cards">
+
+        <div className="summary-card blue">
+
+          <div className="summary-card-icon">
+            ▣
           </div>
 
           <div>
 
-            <div className="sidebar-title">
-              Sentinel<span>Core</span>
-            </div>
+            <span>
+              Total Assets
+            </span>
 
-            <div className="sidebar-subtitle">
-              SecureOps
-            </div>
+            <strong>
+              {totalAssets}
+            </strong>
+
+            <small>
+              Monitored assets
+            </small>
 
           </div>
 
         </div>
 
-        <div className="sidebar-menu">
+        <div className="summary-card green">
 
-          <button className="sidebar-item active">
-            <span>⌂</span>
-            Dashboard
-          </button>
-
-          {isAdmin && (
-            <button
-              className="sidebar-item"
-              onClick={() => setOpen(true)}
-            >
-              <span>⊕</span>
-              Add Asset
-            </button>
-          )}
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/assets";
-            }}
-          >
-            <span>▤</span>
-            Assets
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/alerts";
-            }}
-          >
-            <span>♧</span>
-            Alerts
-          </button>
-
-          <button
-            className="sidebar-item"
-            onClick={() => {
-              window.location.href = "/alert-history";
-            }}
-          >
-            <span>...</span>
-            Alert History
-          </button>
-
-        </div>
-
-        <div className="sidebar-section">
-          PROFILE
-        </div>
-
-        <div className="sidebar-menu">
-
-          {/* PROFILE BUTTON */}
-
-          <button
-  className="sidebar-item"
-  onClick={handleProfileClick}
->
-  <span>◯</span>
-  Profile
-</button>
-
-          <button
-            className="sidebar-item"
-            onClick={handleLogout}
-          >
-            <span>↪</span>
-            Logout
-          </button>
-
-        </div>
-
-        <div className="system-status">
-
-          <div className="system-status-icon">
+          <div className="summary-card-icon">
             ✓
           </div>
 
           <div>
 
+            <span>
+              Online Assets
+            </span>
+
             <strong>
-              System Status
+              {onlineAssets}
             </strong>
 
-            <span>
-              All Systems Operational
-            </span>
+            <small>
+
+              {totalAssets
+                ? Math.round(
+                    (onlineAssets /
+                      totalAssets) *
+                      100
+                  )
+                : 0}
+
+              % of total assets
+
+            </small>
 
           </div>
 
         </div>
 
-      </aside>
+        <div className="summary-card orange">
 
-      {/* =========================
-          MAIN
-      ========================= */}
-
-      <main className="dashboard-main">
-
-        {/* =========================
-            HEADER
-        ========================= */}
-
-        <header className="top-header">
-
-          <button
-            className="mobile-menu"
-            onClick={() =>
-              setSidebarOpen(!sidebarOpen)
-            }
-          >
-            ☰
-          </button>
-
-          {/* SEARCH BAR */}
-
-          <div className="search-box">
-
-            <span>⌕</span>
-
-            <input
-              type="text"
-              placeholder="Search assets, status, type..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-            />
-
+          <div className="summary-card-icon">
+            !
           </div>
-
-          <div className="header-right">
-
-            {/* NOTIFICATION */}
-
-            <NotificationBell />
-
-            {/* TOP PROFILE */}
-
-            <div
-              className="header-user"
-              onClick={handleProfileClick}
-            >
-
-              <div className="avatar">
-                {username.charAt(0).toUpperCase()}
-              </div>
-
-              <div>
-
-                <strong>
-                  {username}
-                </strong>
-
-                <small>
-                  {isAdmin
-                    ? "Administrator"
-                    : "User"}
-                </small>
-
-              </div>
-
-              <span className="user-arrow">
-                ⌄
-              </span>
-
-            </div>
-
-          </div>
-
-        </header>
-
-        {/* =========================
-            PAGE TITLE
-        ========================= */}
-
-        <section className="page-heading">
 
           <div>
 
-            <h1>
-              Dashboard
-            </h1>
+            <span>
+              Active Alerts
+            </span>
 
-            <p>
-              Welcome back, {username}!
-            </p>
+            <strong>
+              {activeAlerts}
+            </strong>
 
-          </div>
-
-          <div className="date-card">
-
-            <span>▣</span>
-
-            {currentDate}
+            <small>
+              Requires attention
+            </small>
 
           </div>
 
-        </section>
+        </div>
 
-        {/* =========================
-            SUMMARY CARDS
-        ========================= */}
+        <div className="summary-card red">
 
-        <section className="summary-cards">
+          <div className="summary-card-icon">
+            ⚠
+          </div>
 
-          <div className="summary-card blue">
+          <div>
 
-            <div className="summary-card-icon">
-              ▣
-            </div>
+            <span>
+              Critical Alerts
+            </span>
+
+            <strong>
+              {summary.criticalAlerts ??
+                criticalAssets}
+            </strong>
+
+            <small>
+              Immediate attention
+            </small>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =========================
+          CHARTS
+      ========================= */}
+
+      <section className="chart-grid">
+
+        {/* CPU */}
+
+        <div className="dashboard-card chart-card">
+
+          <div className="card-header">
 
             <div>
 
-              <span>
-                Total Assets
-              </span>
+              <h2>
+                CPU Usage Overview
+              </h2>
 
-              <strong>
-                {totalAssets}
-              </strong>
-
-              <small>
-                Monitored assets
-              </small>
+              <p>
+                Current CPU utilization
+              </p>
 
             </div>
+
+            <span className="chart-filter">
+              Live
+            </span>
 
           </div>
 
-          <div className="summary-card green">
+          {cpuData.length > 0 ? (
 
-            <div className="summary-card-icon">
-              ✓
+            <ResponsiveContainer
+              width="100%"
+              height={225}
+            >
+
+              <LineChart
+                data={cpuData}
+              >
+
+                <CartesianGrid
+                  stroke="#203149"
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fill: "#8799ad",
+                    fontSize: 10
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{
+                    fill: "#8799ad",
+                    fontSize: 10
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#178cff"
+                  strokeWidth={3}
+                  dot={{ r: 3 }}
+                  name="CPU %"
+                />
+
+              </LineChart>
+
+            </ResponsiveContainer>
+
+          ) : (
+
+            <div className="chart-empty">
+              No CPU data available.
             </div>
+
+          )}
+
+        </div>
+
+        {/* MEMORY */}
+
+        <div className="dashboard-card chart-card">
+
+          <div className="card-header">
 
             <div>
 
-              <span>
-                Online Assets
-              </span>
+              <h2>
+                Memory Usage Overview
+              </h2>
 
-              <strong>
-                {onlineAssets}
-              </strong>
-
-              <small>
-
-                {totalAssets
-                  ? Math.round(
-                      (onlineAssets /
-                        totalAssets) *
-                        100
-                    )
-                  : 0}
-
-                % of total assets
-
-              </small>
+              <p>
+                Current memory utilization
+              </p>
 
             </div>
+
+            <span className="chart-filter">
+              Live
+            </span>
 
           </div>
 
-          <div className="summary-card orange">
+          {memoryData.length > 0 ? (
 
-            <div className="summary-card-icon">
-              !
+            <ResponsiveContainer
+              width="100%"
+              height={225}
+            >
+
+              <LineChart
+                data={memoryData}
+              >
+
+                <CartesianGrid
+                  stroke="#203149"
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="name"
+                  tick={{
+                    fill: "#8799ad",
+                    fontSize: 10
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <YAxis
+                  domain={[0, 100]}
+                  tick={{
+                    fill: "#8799ad",
+                    fontSize: 10
+                  }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#8b4dff"
+                  strokeWidth={3}
+                  dot={{ r: 3 }}
+                  name="Memory %"
+                />
+
+              </LineChart>
+
+            </ResponsiveContainer>
+
+          ) : (
+
+            <div className="chart-empty">
+              No memory data available.
             </div>
+
+          )}
+
+        </div>
+
+        {/* STATUS PIE CHART */}
+
+        <div className="dashboard-card chart-card status-card">
+
+          <div className="card-header">
 
             <div>
 
-              <span>
-                Active Alerts
-              </span>
+              <h2>
+                Asset Status Distribution
+              </h2>
 
-              <strong>
-                {activeAlerts}
-              </strong>
-
-              <small>
-                Requires attention
-              </small>
+              <p>
+                Current infrastructure state
+              </p>
 
             </div>
 
           </div>
 
-          <div className="summary-card red">
+          <div className="status-chart">
 
-            <div className="summary-card-icon">
-              ⚠
-            </div>
-
-            <div>
-
-              <span>
-                Critical Alerts
-              </span>
-
-              <strong>
-                {summary.criticalAlerts ??
-                  criticalAssets}
-              </strong>
-
-              <small>
-                Immediate attention
-              </small>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =========================
-            CHARTS
-        ========================= */}
-
-        <section className="chart-grid">
-
-          {/* CPU */}
-
-          <div className="dashboard-card chart-card">
-
-            <div className="card-header">
-
-              <div>
-
-                <h2>
-                  CPU Usage Overview
-                </h2>
-
-                <p>
-                  Current CPU utilization
-                </p>
-
-              </div>
-
-              <span className="chart-filter">
-                Live
-              </span>
-
-            </div>
-
-            {cpuData.length > 0 ? (
+            {filteredTotalAssets > 0 ? (
 
               <ResponsiveContainer
                 width="100%"
-                height={225}
+                height={190}
               >
 
-                <LineChart
-                  data={cpuData}
-                >
+                <PieChart>
 
-                  <CartesianGrid
-                    stroke="#203149"
-                    strokeDasharray="3 3"
-                  />
+                  <Pie
+                    data={statusData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={82}
+                    paddingAngle={2}
+                  >
 
-                  <XAxis
-                    dataKey="name"
-                    tick={{
-                      fill: "#8799ad",
-                      fontSize: 10
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                    {statusData.map(
+                      (entry, index) => (
 
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{
-                      fill: "#8799ad",
-                      fontSize: 10
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
+                        <Cell
+                          key={entry.name}
+                          fill={
+                            STATUS_COLORS[index]
+                          }
+                        />
+
+                      )
+                    )}
+
+                  </Pie>
 
                   <Tooltip />
 
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#178cff"
-                    strokeWidth={3}
-                    dot={{ r: 3 }}
-                    name="CPU %"
-                  />
-
-                </LineChart>
+                </PieChart>
 
               </ResponsiveContainer>
 
             ) : (
 
               <div className="chart-empty">
-                No CPU data available.
+                No status data available.
               </div>
 
             )}
 
-          </div>
+            <div className="status-center">
 
-          {/* MEMORY */}
+              <strong>
+                {filteredTotalAssets}
+              </strong>
 
-          <div className="dashboard-card chart-card">
-
-            <div className="card-header">
-
-              <div>
-
-                <h2>
-                  Memory Usage Overview
-                </h2>
-
-                <p>
-                  Current memory utilization
-                </p>
-
-              </div>
-
-              <span className="chart-filter">
-                Live
+              <span>
+                Total
               </span>
 
             </div>
 
-            {memoryData.length > 0 ? (
-
-              <ResponsiveContainer
-                width="100%"
-                height={225}
-              >
-
-                <LineChart
-                  data={memoryData}
-                >
-
-                  <CartesianGrid
-                    stroke="#203149"
-                    strokeDasharray="3 3"
-                  />
-
-                  <XAxis
-                    dataKey="name"
-                    tick={{
-                      fill: "#8799ad",
-                      fontSize: 10
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{
-                      fill: "#8799ad",
-                      fontSize: 10
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-
-                  <Tooltip />
-
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#8b4dff"
-                    strokeWidth={3}
-                    dot={{ r: 3 }}
-                    name="Memory %"
-                  />
-
-                </LineChart>
-
-              </ResponsiveContainer>
-
-            ) : (
-
-              <div className="chart-empty">
-                No memory data available.
-              </div>
-
-            )}
-
           </div>
 
-          {/* STATUS PIE CHART */}
+          <div className="status-legend">
 
-          <div className="dashboard-card chart-card status-card">
+            <div>
 
-            <div className="card-header">
+              <span>
 
-              <div>
+                <i className="dot online"></i>
 
-                <h2>
-                  Asset Status Distribution
-                </h2>
+                Online
 
-                <p>
-                  Current infrastructure state
-                </p>
+              </span>
 
-              </div>
+              <b>
+                {filteredOnlineAssets}
+              </b>
 
             </div>
 
-            <div className="status-chart">
+            <div>
 
-              {filteredTotalAssets > 0 ? (
+              <span>
 
-                <ResponsiveContainer
-                  width="100%"
-                  height={190}
-                >
+                <i className="dot warning"></i>
 
-                  <PieChart>
+                Warning
 
-                    <Pie
-                      data={statusData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={55}
-                      outerRadius={82}
-                      paddingAngle={2}
+              </span>
+
+              <b>
+                {filteredWarningAssets}
+              </b>
+
+            </div>
+
+            <div>
+
+              <span>
+
+                <i className="dot critical"></i>
+
+                Critical
+
+              </span>
+
+              <b>
+                {filteredCriticalAssets}
+              </b>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =========================
+          BOTTOM TABLES
+      ========================= */}
+
+      <section className="bottom-grid">
+
+        {/* RECENT ALERTS */}
+
+        <div className="dashboard-card table-card">
+
+          <div className="card-header">
+
+            <div>
+
+              <h2>
+                Recent Alerts
+              </h2>
+
+              <p>
+                Assets requiring attention
+              </p>
+
+            </div>
+
+            <button className="view-all">
+              View All
+            </button>
+
+          </div>
+
+          <div className="table-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Asset
+                  </th>
+
+                  <th>
+                    Severity
+                  </th>
+
+                  <th>
+                    Message
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {recentAlerts.length > 0 ? (
+
+                  recentAlerts.map(
+                    (asset) => {
+
+                      const status =
+                        String(
+                          asset.status || ""
+                        ).toUpperCase();
+
+                      return (
+
+                        <tr key={asset.id}>
+
+                          <td>
+
+                            <strong>
+                              {asset.assetName}
+                            </strong>
+
+                          </td>
+
+                          <td>
+
+                            <span
+                              className={`severity ${
+                                status.toLowerCase()
+                              }`}
+                            >
+                              {status}
+                            </span>
+
+                          </td>
+
+                          <td>
+
+                            {status ===
+                            "CRITICAL"
+                              ? "Critical asset status detected"
+                              : "Warning asset status detected"}
+
+                          </td>
+
+                          <td>
+
+                            <span
+                              className={`alert-status ${
+                                status.toLowerCase()
+                              }`}
+                            >
+                              OPEN
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+                      );
+                    }
+                  )
+
+                ) : (
+
+                  <tr>
+
+                    <td
+                      colSpan="4"
+                      className="empty-table"
                     >
-
-                      {statusData.map(
-                        (entry, index) => (
-
-                          <Cell
-                            key={entry.name}
-                            fill={
-                              STATUS_COLORS[index]
-                            }
-                          />
-
-                        )
-                      )}
-
-                    </Pie>
-
-                    <Tooltip />
-
-                  </PieChart>
-
-                </ResponsiveContainer>
-
-              ) : (
-
-                <div className="chart-empty">
-                  No status data available.
-                </div>
-
-              )}
-
-              <div className="status-center">
-
-                <strong>
-                  {filteredTotalAssets}
-                </strong>
-
-                <span>
-                  Total
-                </span>
-
-              </div>
-
-            </div>
-
-            <div className="status-legend">
-
-              <div>
-
-                <span>
-
-                  <i className="dot online"></i>
-
-                  Online
-
-                </span>
-
-                <b>
-                  {filteredOnlineAssets}
-                </b>
-
-              </div>
-
-              <div>
-
-                <span>
-
-                  <i className="dot warning"></i>
-
-                  Warning
-
-                </span>
-
-                <b>
-                  {filteredWarningAssets}
-                </b>
-
-              </div>
-
-              <div>
-
-                <span>
-
-                  <i className="dot critical"></i>
-
-                  Critical
-
-                </span>
-
-                <b>
-                  {filteredCriticalAssets}
-                </b>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =========================
-            BOTTOM TABLES
-        ========================= */}
-
-        <section className="bottom-grid">
-
-          {/* RECENT ALERTS */}
-
-          <div className="dashboard-card table-card">
-
-            <div className="card-header">
-
-              <div>
-
-                <h2>
-                  Recent Alerts
-                </h2>
-
-                <p>
-                  Assets requiring attention
-                </p>
-
-              </div>
-
-              <button className="view-all">
-                View All
-              </button>
-
-            </div>
-
-            <div className="table-container">
-
-              <table>
-
-                <thead>
-
-                  <tr>
-
-                    <th>
-                      Asset
-                    </th>
-
-                    <th>
-                      Severity
-                    </th>
-
-                    <th>
-                      Message
-                    </th>
-
-                    <th>
-                      Status
-                    </th>
+                      No active alerts.
+                    </td>
 
                   </tr>
 
-                </thead>
+                )}
 
-                <tbody>
+              </tbody>
 
-                  {recentAlerts.length > 0 ? (
-
-                    recentAlerts.map(
-                      (asset) => {
-
-                        const status =
-                          String(
-                            asset.status || ""
-                          ).toUpperCase();
-
-                        return (
-
-                          <tr key={asset.id}>
-
-                            <td>
-
-                              <strong>
-                                {asset.assetName}
-                              </strong>
-
-                            </td>
-
-                            <td>
-
-                              <span
-                                className={`severity ${
-                                  status.toLowerCase()
-                                }`}
-                              >
-                                {status}
-                              </span>
-
-                            </td>
-
-                            <td>
-
-                              {status ===
-                              "CRITICAL"
-                                ? "Critical asset status detected"
-                                : "Warning asset status detected"}
-
-                            </td>
-
-                            <td>
-
-                              <span
-                                className={`alert-status ${
-                                  status.toLowerCase()
-                                }`}
-                              >
-                                OPEN
-                              </span>
-
-                            </td>
-
-                          </tr>
-
-                        );
-                      }
-                    )
-
-                  ) : (
-
-                    <tr>
-
-                      <td
-                        colSpan="4"
-                        className="empty-table"
-                      >
-                        No active alerts.
-                      </td>
-
-                    </tr>
-
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
+            </table>
 
           </div>
 
-          {/* TOP UTILIZATION */}
+        </div>
 
-          <div className="dashboard-card table-card">
+        {/* TOP UTILIZATION */}
 
-            <div className="card-header">
+        <div className="dashboard-card table-card">
 
-              <div>
+          <div className="card-header">
 
-                <h2>
-                  Top Asset Utilization
-                </h2>
+            <div>
 
-                <p>
-                  Highest CPU utilization
-                </p>
+              <h2>
+                Top Asset Utilization
+              </h2>
 
-              </div>
-
-              <button className="view-all">
-                View All
-              </button>
+              <p>
+                Highest CPU utilization
+              </p>
 
             </div>
 
-            <div className="table-container">
+            <button className="view-all">
+              View All
+            </button>
 
-              <table>
+          </div>
 
-                <thead>
+          <div className="table-container">
+
+            <table>
+
+              <thead>
+
+                <tr>
+
+                  <th>
+                    Asset Name
+                  </th>
+
+                  <th>
+                    CPU
+                  </th>
+
+                  <th>
+                    Memory
+                  </th>
+
+                  <th>
+                    Disk
+                  </th>
+
+                  <th>
+                    Status
+                  </th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {topUtilization.length > 0 ? (
+
+                  topUtilization.map(
+                    (asset) => {
+
+                      const status =
+                        String(
+                          asset.status || ""
+                        ).toUpperCase();
+
+                      return (
+
+                        <tr key={asset.id}>
+
+                          <td>
+
+                            <strong>
+                              {asset.assetName}
+                            </strong>
+
+                          </td>
+
+                          <td>
+
+                            <span
+                              className={
+                                Number(
+                                  asset.cpuUsage
+                                ) >= 90
+                                  ? "metric-critical"
+                                  : Number(
+                                      asset.cpuUsage
+                                    ) >= 70
+                                  ? "metric-warning"
+                                  : "metric-good"
+                              }
+                            >
+
+                              {asset.cpuUsage}%
+
+                            </span>
+
+                          </td>
+
+                          <td>
+                            {asset.memoryUsage}%
+                          </td>
+
+                          <td>
+                            {asset.diskUsage}%
+                          </td>
+
+                          <td>
+
+                            <span className="status-text">
+
+                              <i
+                                className={`dot ${
+                                  status ===
+                                  "CRITICAL"
+                                    ? "critical"
+                                    : status ===
+                                      "WARNING"
+                                    ? "warning"
+                                    : "online"
+                                }`}
+                              ></i>
+
+                              {status}
+
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+                      );
+                    }
+                  )
+
+                ) : (
 
                   <tr>
 
-                    <th>
-                      Asset Name
-                    </th>
-
-                    <th>
-                      CPU
-                    </th>
-
-                    <th>
-                      Memory
-                    </th>
-
-                    <th>
-                      Disk
-                    </th>
-
-                    <th>
-                      Status
-                    </th>
+                    <td
+                      colSpan="5"
+                      className="empty-table"
+                    >
+                      No assets available.
+                    </td>
 
                   </tr>
 
-                </thead>
+                )}
 
-                <tbody>
+              </tbody>
 
-                  {topUtilization.length > 0 ? (
-
-                    topUtilization.map(
-                      (asset) => {
-
-                        const status =
-                          String(
-                            asset.status || ""
-                          ).toUpperCase();
-
-                        return (
-
-                          <tr key={asset.id}>
-
-                            <td>
-
-                              <strong>
-                                {asset.assetName}
-                              </strong>
-
-                            </td>
-
-                            <td>
-
-                              <span
-                                className={
-                                  Number(
-                                    asset.cpuUsage
-                                  ) >= 90
-                                    ? "metric-critical"
-                                    : Number(
-                                        asset.cpuUsage
-                                      ) >= 70
-                                    ? "metric-warning"
-                                    : "metric-good"
-                                }
-                              >
-
-                                {asset.cpuUsage}%
-
-                              </span>
-
-                            </td>
-
-                            <td>
-                              {asset.memoryUsage}%
-                            </td>
-
-                            <td>
-                              {asset.diskUsage}%
-                            </td>
-
-                            <td>
-
-                              <span className="status-text">
-
-                                <i
-                                  className={`dot ${
-                                    status ===
-                                    "CRITICAL"
-                                      ? "critical"
-                                      : status ===
-                                        "WARNING"
-                                      ? "warning"
-                                      : "online"
-                                  }`}
-                                ></i>
-
-                                {status}
-
-                              </span>
-
-                            </td>
-
-                          </tr>
-
-                        );
-                      }
-                    )
-
-                  ) : (
-
-                    <tr>
-
-                      <td
-                        colSpan="5"
-                        className="empty-table"
-                      >
-                        No assets available.
-                      </td>
-
-                    </tr>
-
-                  )}
-
-                </tbody>
-
-              </table>
-
-            </div>
+            </table>
 
           </div>
 
-        </section>
+        </div>
 
-        {/* =========================
-            FOOTER
-        ========================= */}
+      </section>
 
-        <footer className="dashboard-footer">
+      {/* =========================
+          FOOTER
+      ========================= */}
 
-          © 2026 SentinelCore SecureOps.
-          All rights reserved.
+      <footer className="dashboard-footer">
 
-        </footer>
+        © 2026 SentinelCore SecureOps.
+        All rights reserved.
 
-      </main>
+      </footer>
 
       {/* =========================
           ADD ASSET
@@ -1272,7 +1050,7 @@ function Dashboard() {
         />
       )}
 
-    </div>
+    </DashboardLayout>
   );
 }
 

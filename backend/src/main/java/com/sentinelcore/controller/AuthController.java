@@ -1,6 +1,7 @@
 package com.sentinelcore.controller;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sentinelcore.entity.Role;
 import com.sentinelcore.entity.User;
+import com.sentinelcore.repository.RoleRepository;
 import com.sentinelcore.repository.UserRepository;
 import com.sentinelcore.util.JwtUtil;
 
@@ -23,18 +26,112 @@ import com.sentinelcore.util.JwtUtil;
 public class AuthController {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
     public AuthController(
             UserRepository userRepository,
+            RoleRepository roleRepository,
             PasswordEncoder passwordEncoder,
             JwtUtil jwtUtil) {
 
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
+
+    /* =========================
+       REGISTER
+    ========================= */
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(
+            @RequestBody Map<String, String> request) {
+
+        String username = request.get("username");
+        String email = request.get("email");
+        String password = request.get("password");
+        String roleName = request.get("role");
+
+        if (username == null || username.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Username is required"
+                    ));
+        }
+
+        if (password == null || password.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Password is required"
+                    ));
+        }
+
+        if (password.length() < 6) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Password must be at least 6 characters"
+                    ));
+        }
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            return ResponseEntity.status(409)
+                    .body(Map.of(
+                            "message",
+                            "Username already exists"
+                    ));
+        }
+
+        if (roleName == null || roleName.isBlank()) {
+            roleName = "ROLE_VIEWER";
+        }
+
+        String finalRoleName = roleName.toUpperCase();
+
+        if (!finalRoleName.equals("ROLE_VIEWER")
+                && !finalRoleName.equals("ROLE_ADMIN")) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message",
+                            "Invalid role"
+                    ));
+        }
+
+        Role role = roleRepository.findByName(finalRoleName)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Role not found: " + finalRoleName));
+
+        User user = User.builder()
+                .username(username.trim())
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .roles(Set.of(role))
+                .build();
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "message",
+                        "Registration successful",
+                        "username",
+                        user.getUsername(),
+                        "role",
+                        finalRoleName
+                )
+        );
+    }
+
+    /* =========================
+       LOGIN
+    ========================= */
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -47,9 +144,9 @@ public class AuthController {
                 .orElse(null);
 
         if (user == null ||
-            !passwordEncoder.matches(
-                    password,
-                    user.getPassword())) {
+                !passwordEncoder.matches(
+                        password,
+                        user.getPassword())) {
 
             return ResponseEntity.status(401)
                     .body(Map.of(
@@ -78,6 +175,10 @@ public class AuthController {
         );
     }
 
+    /* =========================
+       REFRESH TOKEN
+    ========================= */
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
             @RequestBody Map<String, String> request) {
@@ -86,7 +187,7 @@ public class AuthController {
                 request.get("refreshToken");
 
         if (refreshToken == null ||
-            !jwtUtil.validateToken(refreshToken)) {
+                !jwtUtil.validateToken(refreshToken)) {
 
             return ResponseEntity.status(401)
                     .body(Map.of(
@@ -181,7 +282,7 @@ public class AuthController {
                 request.get("email");
 
         if (username == null ||
-            username.trim().isEmpty()) {
+                username.trim().isEmpty()) {
 
             return ResponseEntity.badRequest()
                     .body(Map.of(
@@ -191,7 +292,7 @@ public class AuthController {
         }
 
         if (email == null ||
-            email.trim().isEmpty()) {
+                email.trim().isEmpty()) {
 
             return ResponseEntity.badRequest()
                     .body(Map.of(
@@ -216,8 +317,8 @@ public class AuthController {
                             .orElse(null);
 
             if (existingUser != null &&
-                !existingUser.getId()
-                        .equals(user.getId())) {
+                    !existingUser.getId()
+                            .equals(user.getId())) {
 
                 return ResponseEntity.status(409)
                         .body(Map.of(
@@ -286,7 +387,7 @@ public class AuthController {
                 request.get("newPassword");
 
         if (currentPassword == null ||
-            currentPassword.isBlank()) {
+                currentPassword.isBlank()) {
 
             return ResponseEntity.badRequest()
                     .body(Map.of(
@@ -296,7 +397,7 @@ public class AuthController {
         }
 
         if (newPassword == null ||
-            newPassword.isBlank()) {
+                newPassword.isBlank()) {
 
             return ResponseEntity.badRequest()
                     .body(Map.of(
